@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+﻿import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import {
   Bell,
   BookOpen,
@@ -280,6 +280,53 @@ const journalDictionary: Record<string, JournalEntry> = {
   ni_hao: { hanzi: '\u4f60\u597d', pinyin: ['n\u01d0', 'h\u01ceo'] },
   wo_yao: { hanzi: '\u6211\u8981', pinyin: ['w\u01d2', 'y\u00e0o'] },
   xiang_zuo: { hanzi: '\u60f3\u505a', pinyin: ['xi\u01ceng', 'zu\u00f2'] },
+  shei: { hanzi: '\u8c01', pinyin: ['sh\u00e9i'] },
+  ta: { hanzi: '\u4ed6', pinyin: ['t\u0101'] },
+  men: { hanzi: '\u4eec', pinyin: ['men'] },
+  women: { hanzi: '\u6211\u4eec', pinyin: ['w\u01d2', 'men'] },
+  nimen: { hanzi: '\u4f60\u4eec', pinyin: ['n\u01d0', 'men'] },
+  tamen: { hanzi: '\u4ed6\u4eec', pinyin: ['t\u0101', 'men'] },
+  bu: { hanzi: '\u4e0d', pinyin: ['b\u00f9'] },
+  mei: { hanzi: '\u6ca1', pinyin: ['m\u00e9i'] },
+  you: { hanzi: '\u6709', pinyin: ['y\u01d2u'] },
+  hen: { hanzi: '\u5f88', pinyin: ['h\u011bn'] },
+  dou: { hanzi: '\u90fd', pinyin: ['d\u014du'] },
+  ye: { hanzi: '\u4e5f', pinyin: ['y\u011b'] },
+  he: { hanzi: '\u548c', pinyin: ['h\u00e9'] },
+  gen: { hanzi: '\u8ddf', pinyin: ['g\u0113n'] },
+  yinwei: { hanzi: '\u56e0\u4e3a', pinyin: ['y\u012bn', 'w\u00e8i'] },
+  suoyi: { hanzi: '\u6240\u4ee5', pinyin: ['su\u01d2', 'y\u01d0'] },
+  ruguo: { hanzi: '\u5982\u679c', pinyin: ['r\u00fa', 'gu\u01d2'] },
+  danshi: { hanzi: '\u4f46\u662f', pinyin: ['d\u00e0n', 'sh\u00ec'] },
+  xihuan: { hanzi: '\u559c\u6b22', pinyin: ['x\u01d0', 'huan'] },
+  ai: { hanzi: '\u7231', pinyin: ['\u00e0i'] },
+  chi: { hanzi: '\u5403', pinyin: ['ch\u012b'] },
+  he_drink: { hanzi: '\u559d', pinyin: ['h\u0113'] },
+  mai: { hanzi: '\u4e70', pinyin: ['m\u01cei'] },
+  kanjian: { hanzi: '\u770b\u89c1', pinyin: ['k\u00e0n', 'ji\u00e0n'] },
+  zhidao: { hanzi: '\u77e5\u9053', pinyin: ['zh\u012b', 'd\u00e0o'] },
+  juede: { hanzi: '\u89c9\u5f97', pinyin: ['ju\u00e9', 'de'] },
+  hui: { hanzi: '\u4f1a', pinyin: ['hu\u00ec'] },
+  neng: { hanzi: '\u80fd', pinyin: ['n\u00e9ng'] },
+  keyi: { hanzi: '\u53ef\u4ee5', pinyin: ['k\u011b', 'y\u01d0'] },
+  yinggai: { hanzi: '\u5e94\u8be5', pinyin: ['y\u012bng', 'g\u0101i'] },
+  laoshi: { hanzi: '\u8001\u5e08', pinyin: ['l\u01ceo', 'sh\u012b'] },
+  xuesheng: { hanzi: '\u5b66\u751f', pinyin: ['xu\u00e9', 'sh\u0113ng'] },
+  pengyou: { hanzi: '\u670b\u53cb', pinyin: ['p\u00e9ng', 'you'] },
+  dian: { hanzi: '\u70b9', pinyin: ['di\u01cen'] },
+  qian: { hanzi: '\u94b1', pinyin: ['qi\u00e1n'] },
+  shijian: { hanzi: '\u65f6\u95f4', pinyin: ['sh\u00ed', 'ji\u0101n'] },
+  mingzi: { hanzi: '\u540d\u5b57', pinyin: ['m\u00edng', 'zi'] },
+  zhongguo: { hanzi: '\u4e2d\u56fd', pinyin: ['zh\u014dng', 'gu\u00f3'] },
+  meiguo: { hanzi: '\u7f8e\u56fd', pinyin: ['m\u011bi', 'gu\u00f3'] },
+  guo: { hanzi: '\u56fd', pinyin: ['gu\u00f3'] },
+  zhong_guo: { hanzi: '\u4e2d\u56fd', pinyin: ['zh\u014dng', 'gu\u00f3'] },
+  lao_shi: { hanzi: '\u8001\u5e08', pinyin: ['l\u01ceo', 'sh\u012b'] },
+  xue_sheng: { hanzi: '\u5b66\u751f', pinyin: ['xu\u00e9', 'sh\u0113ng'] },
+  ni_shi: { hanzi: '\u4f60\u662f', pinyin: ['n\u01d0', 'sh\u00ec'] },
+  ni_shi_shei: { hanzi: '\u4f60\u662f\u8c01', pinyin: ['n\u01d0', 'sh\u00ec', 'sh\u00e9i'] },
+  wo_yao_qu: { hanzi: '\u6211\u8981\u53bb', pinyin: ['w\u01d2', 'y\u00e0o', 'q\u00f9'] },
+  qu_zhong_guo: { hanzi: '\u53bb\u4e2d\u56fd', pinyin: ['q\u00f9', 'zh\u014dng', 'gu\u00f3'] },
 };
 
 function parseJournalLine(line: string): JournalToken[] {
@@ -687,28 +734,49 @@ function ReviewPage({ weakAreas, needsReview, onReviewed, onComplete }: { weakAr
 }
 
 function JournalPage({ text, setText }: { text: string; setText: React.Dispatch<React.SetStateAction<string>> }) {
+  const [draft, setDraft] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const parsedLines = useMemo(() => parseJournalText(text), [text]);
+  const visibleLines = parsedLines.length ? parsedLines : [[]];
+  const commitDraft = (separator: string) => {
+    setText((current) => {
+      const addition = `${draft.trim()}${separator}`;
+      if (!draft.trim()) return separator === '\n' ? `${current}\n` : current;
+      return `${current}${addition}`;
+    });
+    setDraft('');
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === ' ') {
+      event.preventDefault();
+      commitDraft(' ');
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      commitDraft('\n');
+      return;
+    }
+    if (punctuationMap[event.key]) {
+      event.preventDefault();
+      commitDraft(event.key);
+      return;
+    }
+    if (event.key === 'Backspace' && !draft) {
+      event.preventDefault();
+      setText((current) => current.slice(0, -1));
+    }
+  };
 
   return (
-    <section className="page-grid journal-page">
-      <article className="panel form-panel journal-input-panel">
+    <section className="page-stack journal-page">
+      <article className="panel journal-editor-panel">
         <h2>Journal</h2>
-        <label className="field">
-          Type with normal letters
-          <textarea
-            className="journal-textarea"
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder="ni hao&#10;wo yao xue xi zhong wen"
-          />
-        </label>
-      </article>
-      <article className="panel journal-preview-panel">
-        <h2>Live Chinese preview</h2>
-        <div className="journal-paper" aria-label="Converted pinyin and hanzi preview">
-          {parsedLines.map((line, lineIndex) => (
+        <div className="journal-paper journal-editor" aria-label="Romanized Chinese journal editor" onClick={() => inputRef.current?.focus()}>
+          {visibleLines.map((line, lineIndex) => (
             <p className="journal-line" key={`${lineIndex}-${line.length}`}>
-              {line.length ? line.map((token, tokenIndex) => {
+              {line.map((token, tokenIndex) => {
                 if (token.kind === 'punct') return <span className="journal-punct" key={`${lineIndex}-${tokenIndex}`}>{token.text}</span>;
                 return (
                   <span className="journal-word" key={`${lineIndex}-${tokenIndex}`}>
@@ -717,9 +785,27 @@ function JournalPage({ text, setText }: { text: string; setText: React.Dispatch<
                     ))}
                   </span>
                 );
-              }) : <span className="journal-placeholder">&nbsp;</span>}
+              })}
+              {lineIndex === visibleLines.length - 1 && (
+                <input
+                  ref={inputRef}
+                  className="journal-inline-input"
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value.toLowerCase())}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                  spellCheck={false}
+                  placeholder={text ? '' : 'type ni hao and press space'}
+                />
+              )}
+              {!line.length && lineIndex !== visibleLines.length - 1 && <span className="journal-placeholder">&nbsp;</span>}
             </p>
           ))}
+        </div>
+        <div className="journal-hints">
+          <span>Space converts</span>
+          <span>Enter new line</span>
+          <span>Backspace removes</span>
         </div>
       </article>
     </section>
@@ -731,3 +817,4 @@ function SettingsPage({ draft, setDraft, onSave, minutesStudied }: { draft: Stud
 }
 
 export default App;
+

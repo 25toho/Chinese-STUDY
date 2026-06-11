@@ -1383,3 +1383,61 @@ th {
   }
 }
 
+/* Single-box iPhone-style journal editor */
+.journal-page {
+  grid-template-columns: 1fr;
+}
+
+.journal-editor-panel {
+  min-height: clamp(520px, 62vw, 720px);
+  padding: clamp(18px, 1.8vw, 28px);
+}
+
+.journal-editor {
+  min-height: clamp(395px, 48vw, 575px);
+  cursor: text;
+}
+
+.journal-line {
+  align-items: flex-end;
+}
+
+.journal-inline-input {
+  width: min(360px, 70vw);
+  min-width: 120px;
+  height: 54px;
+  margin: 0 0 4px 2px;
+  border: 0;
+  outline: 0;
+  color: rgba(255,255,255,0.98);
+  background: transparent;
+  font-family: "Raleway", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(22px, 2.1vw, 34px);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.46);
+  caret-color: rgba(255,255,255,0.95);
+}
+
+.journal-inline-input::placeholder {
+  color: rgba(255,255,255,0.70);
+  font-size: clamp(16px, 1.35vw, 22px);
+}
+
+.journal-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.journal-hints span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.018);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-muted);
+  font-size: clamp(10px, 0.72vw, 12px);
+  font-weight: 750;
+}
+
