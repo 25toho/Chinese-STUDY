@@ -1170,3 +1170,116 @@ td,
   font-weight: 700;
 }
 
+/* Readability boost for transparent glass */
+:root {
+  --text-strong: rgba(255, 255, 255, 0.99);
+  --text-main: rgba(255, 255, 255, 0.94);
+  --text-muted: rgba(255, 255, 255, 0.84);
+}
+
+.studio-app {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.42);
+}
+
+svg,
+.donut,
+.kpi-icon,
+.status {
+  text-shadow: none;
+}
+
+.brand {
+  font-size: clamp(20px, 1.5vw, 24px);
+}
+
+.nav-item {
+  font-size: clamp(11px, 0.76vw, 13px);
+}
+
+.eyebrow,
+.topbar span {
+  color: var(--text-muted);
+  font-size: clamp(11px, 0.78vw, 13px);
+}
+
+h1 {
+  color: var(--text-strong);
+  font-size: clamp(28px, 2.2vw, 35px);
+}
+
+.panel h2,
+.form-panel h2,
+.table-panel h2,
+.stat-panel h2,
+.list-card h2,
+.anki-card h2,
+.review-card h2 {
+  color: var(--text-strong);
+  font-size: clamp(14px, 0.95vw, 17px);
+}
+
+.kpi-card p {
+  color: var(--text-muted);
+  font-size: clamp(10px, 0.72vw, 12px);
+}
+
+.kpi-card strong {
+  color: var(--text-strong);
+  font-size: clamp(24px, 1.75vw, 30px);
+}
+
+th,
+td {
+  color: var(--text-main);
+  font-size: clamp(10px, 0.72vw, 12px);
+}
+
+th {
+  color: var(--text-strong);
+}
+
+.search-box,
+.glass-button,
+.field input,
+.field textarea,
+.field select {
+  color: var(--text-strong);
+  font-size: clamp(11px, 0.76vw, 13px);
+}
+
+.search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.field span,
+.legend,
+.list-card p,
+.stat-panel p,
+.empty-state p,
+.anki-card p,
+.review-card p,
+.timeline-content p,
+.lesson-card p,
+.video-card p,
+.word-card p,
+.support-card span,
+.meta-grid span,
+.soft-line {
+  color: var(--text-main);
+  font-size: clamp(11px, 0.8vw, 13px);
+}
+
+.support-card p {
+  color: var(--text-strong);
+  font-size: 11px;
+}
+
+.status {
+  font-size: clamp(9px, 0.6vw, 10px);
+}
+
+.chart-labels text {
+  fill: rgba(255, 255, 255, 0.95);
+  font-size: 11px;
+}
+
