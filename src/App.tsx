@@ -9,6 +9,7 @@ import {
   Download,
   GraduationCap,
   LayoutDashboard,
+  PenLine,
   Plus,
   RotateCcw,
   Save,
@@ -20,7 +21,7 @@ import {
 } from 'lucide-react';
 import backgroundImage from './assets/bright-landscape.png';
 
-type PageName = 'Dashboard' | 'Lessons' | 'YouTube' | 'Vocabulary' | 'Anki' | 'Review' | 'Settings';
+type PageName = 'Dashboard' | 'Lessons' | 'YouTube' | 'Vocabulary' | 'Anki' | 'Review' | 'Journal' | 'Settings';
 type ActivityStatus = 'Completed' | 'Pending' | 'Ready' | 'Reviewed';
 
 type Lesson = {
@@ -88,6 +89,7 @@ const navigation: { label: PageName; icon: typeof LayoutDashboard }[] = [
   { label: 'Vocabulary', icon: GraduationCap },
   { label: 'Anki', icon: CreditCard },
   { label: 'Review', icon: RotateCcw },
+  { label: 'Journal', icon: PenLine },
   { label: 'Settings', icon: Settings },
 ];
 
@@ -223,6 +225,103 @@ function createActivity(topic: string, type: string, status: ActivityStatus): Ac
   };
 }
 
+type JournalToken =
+  | { kind: 'word'; hanzi: string; pinyin: string[] }
+  | { kind: 'punct'; text: string };
+
+type JournalEntry = {
+  hanzi: string;
+  pinyin: string[];
+};
+
+const punctuationMap: Record<string, string> = {
+  ',': '\uff0c',
+  '.': '\u3002',
+  '?': '\uff1f',
+  '!': '\uff01',
+  ';': '\uff1b',
+  ':': '\uff1a',
+};
+
+const journalDictionary: Record<string, JournalEntry> = {
+  ni: { hanzi: '\u4f60', pinyin: ['n\u01d0'] },
+  hao: { hanzi: '\u597d', pinyin: ['h\u01ceo'] },
+  wo: { hanzi: '\u6211', pinyin: ['w\u01d2'] },
+  yao: { hanzi: '\u8981', pinyin: ['y\u00e0o'] },
+  xue: { hanzi: '\u5b66', pinyin: ['xu\u00e9'] },
+  xi: { hanzi: '\u4e60', pinyin: ['x\u00ed'] },
+  zhong: { hanzi: '\u4e2d', pinyin: ['zh\u014dng'] },
+  wen: { hanzi: '\u6587', pinyin: ['w\u00e9n'] },
+  yi: { hanzi: '\u4ee5', pinyin: ['y\u01d0'] },
+  hou: { hanzi: '\u540e', pinyin: ['h\u00f2u'] },
+  xiang: { hanzi: '\u60f3', pinyin: ['xi\u01ceng'] },
+  zuo: { hanzi: '\u505a', pinyin: ['zu\u00f2'] },
+  shen: { hanzi: '\u4ec0', pinyin: ['sh\u00e9n'] },
+  me: { hanzi: '\u4e48', pinyin: ['me'] },
+  shi: { hanzi: '\u662f', pinyin: ['sh\u00ec'] },
+  ma: { hanzi: '\u5417', pinyin: ['ma'] },
+  de: { hanzi: '\u7684', pinyin: ['de'] },
+  le: { hanzi: '\u4e86', pinyin: ['le'] },
+  zai: { hanzi: '\u5728', pinyin: ['z\u00e0i'] },
+  qu: { hanzi: '\u53bb', pinyin: ['q\u00f9'] },
+  lai: { hanzi: '\u6765', pinyin: ['l\u00e1i'] },
+  kan: { hanzi: '\u770b', pinyin: ['k\u00e0n'] },
+  ting: { hanzi: '\u542c', pinyin: ['t\u012bng'] },
+  shuo: { hanzi: '\u8bf4', pinyin: ['shu\u014d'] },
+  xie: { hanzi: '\u5199', pinyin: ['xi\u011b'] },
+  du: { hanzi: '\u8bfb', pinyin: ['d\u00fa'] },
+  jintian: { hanzi: '\u4eca\u5929', pinyin: ['j\u012bn', 'ti\u0101n'] },
+  mingtian: { hanzi: '\u660e\u5929', pinyin: ['m\u00edng', 'ti\u0101n'] },
+  xianzai: { hanzi: '\u73b0\u5728', pinyin: ['xi\u00e0n', 'z\u00e0i'] },
+  yi_hou: { hanzi: '\u4ee5\u540e', pinyin: ['y\u01d0', 'h\u00f2u'] },
+  shen_me: { hanzi: '\u4ec0\u4e48', pinyin: ['sh\u00e9n', 'me'] },
+  xue_xi: { hanzi: '\u5b66\u4e60', pinyin: ['xu\u00e9', 'x\u00ed'] },
+  zhong_wen: { hanzi: '\u4e2d\u6587', pinyin: ['zh\u014dng', 'w\u00e9n'] },
+  ni_hao: { hanzi: '\u4f60\u597d', pinyin: ['n\u01d0', 'h\u01ceo'] },
+  wo_yao: { hanzi: '\u6211\u8981', pinyin: ['w\u01d2', 'y\u00e0o'] },
+  xiang_zuo: { hanzi: '\u60f3\u505a', pinyin: ['xi\u01ceng', 'zu\u00f2'] },
+};
+
+function parseJournalLine(line: string): JournalToken[] {
+  const rawTokens = line.match(/[a-zA-Z]+|[0-9]+|[^\s]/g) ?? [];
+  const tokens: JournalToken[] = [];
+
+  for (let index = 0; index < rawTokens.length;) {
+    const token = rawTokens[index];
+    if (/^[a-zA-Z]+$/.test(token)) {
+      let entry: JournalEntry | undefined;
+      let consumed = 1;
+      for (let size = Math.min(4, rawTokens.length - index); size > 0; size -= 1) {
+        const slice = rawTokens.slice(index, index + size);
+        if (!slice.every((part) => /^[a-zA-Z]+$/.test(part))) continue;
+        const key = slice.join('_').toLowerCase();
+        if (journalDictionary[key]) {
+          entry = journalDictionary[key];
+          consumed = size;
+          break;
+        }
+      }
+
+      if (entry) {
+        tokens.push({ kind: 'word', hanzi: entry.hanzi, pinyin: entry.pinyin });
+      } else {
+        tokens.push({ kind: 'word', hanzi: token, pinyin: [token.toLowerCase()] });
+      }
+      index += consumed;
+      continue;
+    }
+
+    tokens.push({ kind: 'punct', text: punctuationMap[token] ?? token });
+    index += 1;
+  }
+
+  return tokens;
+}
+
+function parseJournalText(text: string) {
+  return text.split(/\r?\n/).map(parseJournalLine);
+}
+
 function countWords(text: string) {
   return text
     .split(/[,\s]+/)
@@ -349,6 +448,7 @@ function App() {
   const [ankiCards, setAnkiCards] = useStoredState<AnkiCard[]>('ms-anki', []);
   const [activities, setActivities] = useStoredState<Activity[]>('ms-activities', initialActivities);
   const [settings, setSettings] = useStoredState<StudioSettings>('ms-settings', defaultSettings);
+  const [journalText, setJournalText] = useStoredState<string>('ms-journal-text', 'yi hou ni xiang zuo shen me?\nni yi hou xiang zuo shen me?\nyi hou wo yao xue xi zhong wen.\nwo yi hou yao xue xi zhong wen.');
   const [vocabForm, setVocabForm] = useState<VocabForm>(emptyVocabForm);
   const [youtubeForm, setYoutubeForm] = useState<YoutubeForm>(emptyYoutubeForm);
   const [settingsDraft, setSettingsDraft] = useState<StudioSettings>(settings);
@@ -531,6 +631,7 @@ function App() {
         {activeNav === 'Vocabulary' && <VocabularyPage items={filteredVocabulary} form={vocabForm} setForm={setVocabForm} onSave={saveVocabulary} onMark={markVocabulary} />}
         {activeNav === 'Anki' && <AnkiPage cards={ankiCards} vocabularyCount={vocabulary.length} onGenerate={generateAnkiCards} onExport={exportDeck} />}
         {activeNav === 'Review' && <ReviewPage weakAreas={weakAreas} needsReview={needsReview} onReviewed={(id) => markVocabulary(id, 'Learned')} onComplete={() => addActivity(createActivity('Weekly review checklist', 'Review', 'Completed'))} />}
+        {activeNav === 'Journal' && <JournalPage text={journalText} setText={setJournalText} />}
         {activeNav === 'Settings' && <SettingsPage draft={settingsDraft} setDraft={setSettingsDraft} onSave={saveSettings} minutesStudied={minutesStudied} />}
       </section>
 
@@ -583,6 +684,46 @@ function AnkiPage({ cards, vocabularyCount, onGenerate, onExport }: { cards: Ank
 
 function ReviewPage({ weakAreas, needsReview, onReviewed, onComplete }: { weakAreas: { id: string; label: string; source: string }[]; needsReview: VocabularyItem[]; onReviewed: (id: string) => void; onComplete: () => void }) {
   return <section className="page-grid two-column"><div className="panel table-panel"><h2>Weak areas</h2>{weakAreas.length ? <div className="glass-list compact">{weakAreas.map((area) => <article className="mini-card" key={area.id}><strong>{area.label}</strong><span>{area.source}</span></article>)}</div> : <EmptyState title="No weak areas." />}</div><div className="panel table-panel"><h2>Needs review</h2>{needsReview.length ? <div className="glass-list compact">{needsReview.map((item) => <article className="mini-card" key={item.id}><strong>{item.hanzi} - {item.meaning}</strong><span>{item.pinyin}</span><GlassButton onClick={() => onReviewed(item.id)}><Check size={14} /> Mark reviewed</GlassButton></article>)}</div> : <EmptyState title="Nothing to review." />}<div className="checklist"><h2>Weekly checklist</h2>{['Tone shadowing', 'Vocabulary recall', 'Grammar correction'].map((item) => <label className="check-row" key={item}><input type="checkbox" />{item}</label>)}<GlassButton onClick={onComplete} variant="primary"><Check size={14} /> Complete review</GlassButton></div></div></section>;
+}
+
+function JournalPage({ text, setText }: { text: string; setText: React.Dispatch<React.SetStateAction<string>> }) {
+  const parsedLines = useMemo(() => parseJournalText(text), [text]);
+
+  return (
+    <section className="page-grid journal-page">
+      <article className="panel form-panel journal-input-panel">
+        <h2>Journal</h2>
+        <label className="field">
+          Type with normal letters
+          <textarea
+            className="journal-textarea"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder="ni hao&#10;wo yao xue xi zhong wen"
+          />
+        </label>
+      </article>
+      <article className="panel journal-preview-panel">
+        <h2>Live Chinese preview</h2>
+        <div className="journal-paper" aria-label="Converted pinyin and hanzi preview">
+          {parsedLines.map((line, lineIndex) => (
+            <p className="journal-line" key={`${lineIndex}-${line.length}`}>
+              {line.length ? line.map((token, tokenIndex) => {
+                if (token.kind === 'punct') return <span className="journal-punct" key={`${lineIndex}-${tokenIndex}`}>{token.text}</span>;
+                return (
+                  <span className="journal-word" key={`${lineIndex}-${tokenIndex}`}>
+                    {Array.from(token.hanzi).map((char, charIndex) => (
+                      <ruby key={`${char}-${charIndex}`}>{char}<rt>{token.pinyin[charIndex] ?? token.pinyin[0]}</rt></ruby>
+                    ))}
+                  </span>
+                );
+              }) : <span className="journal-placeholder">&nbsp;</span>}
+            </p>
+          ))}
+        </div>
+      </article>
+    </section>
+  );
 }
 
 function SettingsPage({ draft, setDraft, onSave, minutesStudied }: { draft: StudioSettings; setDraft: React.Dispatch<React.SetStateAction<StudioSettings>>; onSave: (event: FormEvent) => void; minutesStudied: number }) {
