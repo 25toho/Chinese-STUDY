@@ -13,4 +13,5 @@ pnpm-debug.log*
 Thumbs.db
 
 preview-*.png
+verify-*.png
 *.tsbuildinfo

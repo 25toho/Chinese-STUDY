@@ -26,10 +26,10 @@ Run the dev server:
 npm run dev
 ```
 
-Open the local URL printed by Vite, usually:
+Open:
 
 ```text
-http://127.0.0.1:5173/
+http://127.0.0.1:5199/
 ```
 
 ## Build
